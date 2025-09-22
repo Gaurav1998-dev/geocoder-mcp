@@ -12,16 +12,13 @@ const handler = createMcpHandler(
       },
       async ({ address }) => {
         try {
-          const api_key = process.env.MAPS_CO_API_KEY;
-
-          console.log("api_key", api_key);
           console.log("address", address);
 
           const encodedAddress = encodeURIComponent(address);
 
           console.log("encodedAddress", encodedAddress);
 
-          const url = `https://geocode.maps.co/search?q=${encodedAddress}&api_key=${api_key}`;
+          const url = `https://customer-geocoding-api.open-meteo.com/v1/search?apikey=&name=${encodedAddress}&count=1`;
 
           const response = await fetch(url);
 
@@ -31,7 +28,7 @@ const handler = createMcpHandler(
 
           const data = await response.json();
 
-          if (!data || data.length === 0) {
+          if (!data.results || data.results.length === 0) {
             return {
               content: [
                 {
@@ -42,18 +39,18 @@ const handler = createMcpHandler(
             };
           }
 
-
           console.log("data", data);
 
-          const firstResult = data[0];
+          // If count is 1, return just the coordinates of the first result
+          const firstResult = data.results[0];
           const coordinates = {
-            latitude: parseFloat(firstResult.lat),
-            longitude: parseFloat(firstResult.lon),
+            latitude: firstResult.latitude,
+            longitude: firstResult.longitude,
           };
 
           console.log("firstResult", firstResult);
           console.log("coordinates", coordinates);
-          
+
           return {
             content: [
               {
@@ -82,7 +79,7 @@ const handler = createMcpHandler(
       tools: {
         geocode: {
           description:
-            "Geocode an address to get latitude and longitude coordinates using maps.co API",
+            "Geocode an address to get latitude and longitude coordinates using Open-Meteo API",
         },
       },
     },
